@@ -5,6 +5,7 @@ import com.blog.Model.LoginResponse;
 import com.blog.Model.TableModel.LoginInfo;
 import com.blog.Utils.ResponseStatus;
 import com.blog.repository.LoginRepository;
+import com.blog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +21,12 @@ public class LoginService {
     //username, loginTime
     static Map<String, Integer> loginTimeCache = new HashMap();
 
+    static Map<String, Boolean> activeCache = new HashMap<>();
+
     @Autowired
     LoginRepository loginRepository;
+    @Autowired
+    UserRepository userRepository;
 
     public LoginService(){
 
@@ -31,35 +36,37 @@ public class LoginService {
         LoginResponse response = new LoginResponse();
         LoginInfo info = new LoginInfo();
 
-        // Failure login attempts more than 3 times
-        // once successfully login, reset attempts
-
-        // username exist in database, but password wrong
         if(!checkIfUsernameExistInCache(request.getUsername())){
             info = loginRepository.findByUsername(request.getUsername());
             if (Objects.nonNull(info)){
                 passWordCache.put(info.getUsername(), info.getPassword());
                 loginTimeCache.put(info.getUsername(), 0);
+                activeCache.put(info.getUsername(), info.isActive());
             }
         }else {
-            // source of truth
             info.setUsername(request.getUsername());
             info.setPassword(passWordCache.get(request.getUsername()));
+            info.setActive(activeCache.get(request.getUsername()));
         }
 
-        //nullcheck
-        if (Objects.nonNull(info) && info.getPassword().equals(request.getPassword())){
+
+        if (Objects.isNull(info)){
+            response.setResponseStatus(ResponseStatus.Failure);
+            response.setResponseMessage("User does not exist");
+        }else if (!info.isActive()){
+            response.setResponseMessage("Account is locked");
+            response.setResponseStatus(ResponseStatus.Failure);
+        }else if (info.getPassword().equals(request.getPassword())){
             loginTimeCache.put(info.getUsername(), 0);
             response.setResponseMessage("Validation passed");
             response.setResponseStatus(ResponseStatus.Success);
-        }else if (Objects.isNull(info)){
-            response.setResponseStatus(ResponseStatus.Failure);
-            response.setResponseMessage("User does not exist");
-        }else{
+        } else{
 
             if (loginTimeCache.get(info.getUsername()) == 3){
                 response.setResponseMessage("Failure attemps more than 3 times, lock account");
-                // talk to database to mark the account as locked
+                loginRepository.setActiveStatusForLogin(false, info.getUsername());
+                userRepository.setActiveStatusForUser(false, info.getUsername());
+                activeCache.put(info.getUsername(), false);
             }else{
                 loginTimeCache.put(info.getUsername(), loginTimeCache.get(info.getUsername())+1);
                 response.setResponseMessage("Password and username not match");
@@ -70,7 +77,7 @@ public class LoginService {
     }
 
     private static boolean checkIfUsernameExistInCache(String userName){
-        if(passWordCache.containsKey(userName) && loginTimeCache.containsKey(userName) ){
+        if(passWordCache.containsKey(userName) && loginTimeCache.containsKey(userName)){
             return true;
         }
         return false;

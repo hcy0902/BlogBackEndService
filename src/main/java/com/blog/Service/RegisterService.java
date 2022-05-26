@@ -39,6 +39,7 @@ public class RegisterService {
         loginInfo.setUsername(request.getUsername());
         loginInfo.setEmail(request.getEmail());
         loginInfo.setPassword(request.getPassword());
+        loginInfo.setActive(true);
         repository.save(loginInfo);
 
         UserInfo userInfo = new UserInfo();
@@ -47,6 +48,7 @@ public class RegisterService {
         userInfo.setBirthday(request.getBirthday());
         userInfo.setFirstName(request.getFirstName());
         userInfo.setLastName(request.getLastName());
+        userInfo.setActive(true);
         userRepository.save(userInfo);
 
 

@@ -1,13 +1,13 @@
 package com.blog.Model.TableModel;
 
+import com.sun.istack.Nullable;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
-@Entity
+
 @Data
+@Entity(name = "USER_INFO")
 public class UserInfo {
 
     @Id
@@ -20,4 +20,6 @@ public class UserInfo {
     private String phoneNumber;
     private String email;
     private String username;
+    @Column(columnDefinition = "boolean default true")
+    private boolean active;
 }
