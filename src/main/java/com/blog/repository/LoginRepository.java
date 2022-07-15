@@ -18,4 +18,9 @@ public interface LoginRepository extends JpaRepository<LoginInfo, Long> {
     @Query("update LOGIN_INFO l set l.active = ?1 where l.username = ?2")
     public void setActiveStatusForLogin(boolean status, String username);
 
+    @Transactional
+    @Modifying
+    @Query("update LOGIN_INFO l set l.password = ?1 where l.username = ?2")
+    public void changePasswordForLogin(String password, String username);
+
 }

@@ -31,6 +31,11 @@ public class ApplicationController {
     @Autowired
     ViewPostService viewPostService;
 
+    @Autowired
+    ChangePasswordService changePasswordService;
+
+    @Autowired
+    UpdateProfileService updateProfileService;
 
     @PostMapping("/blogCreationService")
     public ResponseEntity<BlogCreationResponse> blogCreation (@Valid @RequestBody BlogCreationRequest blogCreationRequest){
@@ -78,5 +83,21 @@ public class ApplicationController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<ChangePasswordResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request){
+        ChangePasswordResponse response = changePasswordService.changePassword(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/updateProfile")
+
+    public ResponseEntity<UpdateProfileResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest request){
+        UpdateProfileResponse response = updateProfileService.updateProfile(request);
+
+        return ResponseEntity.ok(response);
+    }
+
 
 }
